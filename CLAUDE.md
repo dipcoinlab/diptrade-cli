@@ -77,7 +77,7 @@ Commander.js commands that consume the SDK. Each file in `cli/commands/` registe
 **`DipCoinPerpSDK`** (`src/sdk/sdk.ts`) is the core class. It handles:
 - JWT authentication via signed onboarding message (cached in `~/.config/dipcoin/jwt/`)
 - REST API calls through `HttpClient` (uses system `curl` via child_process to bypass Cloudflare TLS fingerprinting — do NOT replace with axios/fetch)
-- On-chain transaction building and execution via `@mysten/sui` and `@pythnetwork/pyth-sui-js`
+- On-chain transaction building and execution via `@mysten/sui` (v2, **gRPC** `SuiGrpcClient`) and `@pythnetwork/pyth-sui-js` (v4). JSON-RPC is disabled on Sui public fullnodes — do NOT reintroduce the JSON-RPC `SuiClient`
 - Order signing with the order-signer module
 
 Key SDK modules:
@@ -85,6 +85,7 @@ Key SDK modules:
 | Module | Purpose |
 |--------|---------|
 | `src/onchain/transaction-builder.ts` | Builds Sui `Transaction` objects for deposit, withdraw, margin adjustment |
+| `src/onchain/client.ts` | gRPC client factory + helpers: `getObjectJson` / `getDynamicFieldJson` (gRPC JSON is flat — no JSON-RPC `fields` wrappers, UIDs are strings) and `toTxExecutionResult` (normalizes results to `{ digest, effects.status.{status,error} }`) |
 | `src/onchain/exchange.ts` | Executes built transactions against the Sui RPC |
 | `src/onchain/order-signer.ts` | Constructs order message bytes for off-chain signature verification |
 | `src/services/httpClient.ts` | HTTP client that spawns `curl` subprocesses. Adds `X-Wallet-Address` and `Authorization: Bearer` headers |
@@ -174,6 +175,7 @@ Env loaded from `~/.config/dipcoin/env` or `.env` in cwd:
 - `DIPCOIN_PRIVATE_KEY` — Sui private key (recommended)
 - `DIPCOIN_MNEMONIC` — 12-word Sui mnemonic (alternative)
 - `DIPCOIN_NETWORK` — `mainnet` or `testnet` (default: mainnet)
+- `DIPCOIN_RPC_URL` (or `SUI_RPC_URL`) — optional Sui **gRPC-Web** endpoint; defaults to `https://fullnode.<network>.sui.io:443` (public, rate-limited). JSON-RPC URLs no longer work
 
 ## Code Style
 

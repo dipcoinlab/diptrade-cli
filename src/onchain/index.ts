@@ -27,3 +27,13 @@ export {
   setSubAccount,
 } from "./exchange";
 export { signAndExecuteTransactionWithFreshGas } from "./gas";
+export {
+  createSuiClient,
+  getGrpcFullnodeUrl,
+  getObjectJson,
+  getObjectsJson,
+  getDynamicFieldJson,
+  toTxExecutionResult,
+  formatExecutionError,
+} from "./client";
+export type { SuiClient, TxExecutionResult } from "./client";

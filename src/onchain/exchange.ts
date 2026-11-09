@@ -1,9 +1,9 @@
 // Copyright (c) 2025 Dipcoin LLC
 // SPDX-License-Identifier: Apache-2.0
 
-import { SuiClient, SuiTransactionBlockResponse } from "@mysten/sui/client";
 import { Keypair } from "@mysten/sui/cryptography";
-import { Transaction } from "@mysten/sui/transactions";
+import { Transaction, coinWithBalance } from "@mysten/sui/transactions";
+import { SuiClient, TxExecutionResult, getObjectJson } from "./client";
 import {
   buildWithdrawTx,
   buildAddMarginTx,
@@ -23,13 +23,8 @@ export async function executeTxBlock(
   suiClient: SuiClient,
   tx: Transaction,
   signer: Keypair
-): Promise<SuiTransactionBlockResponse> {
-  return signAndExecuteTransactionWithFreshGas(suiClient, tx, signer, {
-    showObjectChanges: true,
-    showEffects: true,
-    showEvents: true,
-    showInput: true,
-  });
+): Promise<TxExecutionResult> {
+  return signAndExecuteTransactionWithFreshGas(suiClient, tx, signer);
 }
 
 export function getDeploymentPerpetualID(deployment: any, market?: string): string {
@@ -42,11 +37,10 @@ export async function getOraclePrice(
   market: string
 ): Promise<number> {
   const objId = getPriceOracleObjectId(deployment, market);
-  const obj = await suiClient.getObject({ id: objId, options: { showContent: true } });
-  const fields = (obj.data?.content as any)?.fields?.price_info?.fields?.price_feed?.fields?.price
-    ?.fields;
-  if (!fields) throw new Error(`Failed to read oracle price for ${market}`);
-  return Number(fields.price.fields.magnitude) / Math.pow(10, Number(fields.expo.fields.magnitude));
+  const json = await getObjectJson(suiClient, objId);
+  const price = json?.price_info?.price_feed?.price;
+  if (!price?.price || !price?.expo) throw new Error(`Failed to read oracle price for ${market}`);
+  return Number(price.price.magnitude) / Math.pow(10, Number(price.expo.magnitude));
 }
 
 export async function depositToBank(
@@ -54,27 +48,16 @@ export async function depositToBank(
   deployment: any,
   args: { amount: string; accountAddress?: string; bankID?: string; gasBudget?: number },
   signer: Keypair
-): Promise<SuiTransactionBlockResponse> {
+): Promise<TxExecutionResult> {
   const sender = signer.getPublicKey().toSuiAddress();
   const coinType = getCurrencyType(deployment);
-
-  // Fetch user's USDC coins to use for deposit (not SUI gas)
-  const coins = await suiClient.getCoins({ owner: sender, coinType });
-  if (!coins.data.length) throw new Error(`No ${coinType} coins found for ${sender}`);
 
   const tx = new Transaction();
   if (args.gasBudget) tx.setGasBudget(args.gasBudget);
   tx.setSender(sender);
 
-  // Use first coin, merge others if needed to ensure sufficient balance
-  const primaryCoin = tx.object(coins.data[0].coinObjectId);
-  if (coins.data.length > 1) {
-    tx.mergeCoins(
-      primaryCoin,
-      coins.data.slice(1).map((c) => tx.object(c.coinObjectId))
-    );
-  }
-  const depositCoin = tx.splitCoins(primaryCoin, [BigInt(args.amount)]);
+  // Let the SDK select/merge/split the user's USDC (coin objects or address balance)
+  const depositCoin = coinWithBalance({ type: coinType, balance: BigInt(args.amount) });
 
   const packageId = getPackageId(deployment);
   tx.moveCall({
@@ -98,7 +81,7 @@ export async function withdrawFromBank(
   deployment: any,
   args: { amount: string; accountAddress?: string; bankID?: string; gasBudget?: number },
   signer: Keypair
-): Promise<SuiTransactionBlockResponse> {
+): Promise<TxExecutionResult> {
   const tx = buildWithdrawTx(
     deployment,
     args,
@@ -121,7 +104,7 @@ export async function addMargin(
     gasBudget?: number;
   },
   signer: Keypair
-): Promise<SuiTransactionBlockResponse> {
+): Promise<TxExecutionResult> {
   const tx = buildAddMarginTx(
     deployment,
     args,
@@ -144,7 +127,7 @@ export async function removeMargin(
     gasBudget?: number;
   },
   signer: Keypair
-): Promise<SuiTransactionBlockResponse> {
+): Promise<TxExecutionResult> {
   const tx = buildRemoveMarginTx(
     deployment,
     args,
@@ -160,7 +143,7 @@ export async function setSubAccount(
   deployment: any,
   args: { account: string; status: boolean; subAccountsMapID?: string; gasBudget?: number },
   signer: Keypair
-): Promise<SuiTransactionBlockResponse> {
+): Promise<TxExecutionResult> {
   const tx = buildSetSubAccountTx(
     deployment,
     args,

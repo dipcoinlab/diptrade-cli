@@ -1,7 +1,7 @@
 // Copyright (c) 2025 Dipcoin LLC
 // SPDX-License-Identifier: Apache-2.0
 
-import { SuiClient, SuiTransactionBlockResponse, getFullnodeUrl } from "@mysten/sui/client";
+import { bcs } from "@mysten/sui/bcs";
 import { Keypair, parseSerializedSignature } from "@mysten/sui/cryptography";
 import { Transaction } from "@mysten/sui/transactions";
 import { initSDKOptions } from "../config";
@@ -21,7 +21,13 @@ import {
   buildAddMarginTx,
   buildRemoveMarginTx,
   buildSetOraclePriceTx,
+  createSuiClient,
+  formatExecutionError,
+  getObjectJson,
+  getObjectsJson,
+  getDynamicFieldJson,
 } from "../onchain";
+import type { SuiClient, TxExecutionResult } from "../onchain";
 import {
   AccountInfo,
   AccountInfoParams,
@@ -122,8 +128,7 @@ export class DipCoinPerpSDK {
     this.walletAddress = this.keypair.getPublicKey().toSuiAddress();
     this.httpClient.setWalletAddress(this.walletAddress);
     this.deploymentConfig = readFile(`config/deployed/${options.network}/main_contract.json`);
-    const rpcUrl = options.customRpc || getFullnodeUrl(options.network);
-    this.suiClient = new SuiClient({ url: rpcUrl });
+    this.suiClient = createSuiClient(options.network, options.customRpc);
   }
 
   /**
@@ -2051,7 +2056,7 @@ export class DipCoinPerpSDK {
    * Add isolated margin to an existing position (on-chain)
    * @param params Margin adjustment parameters
    */
-  async addMargin(params: MarginAdjustmentParams): Promise<SuiTransactionBlockResponse> {
+  async addMargin(params: MarginAdjustmentParams): Promise<TxExecutionResult> {
     const transaction = await this.buildMarginTransaction(params, "add");
     if (transaction) {
       return executeTxBlock(this.suiClient, transaction, this.keypair);
@@ -2071,7 +2076,7 @@ export class DipCoinPerpSDK {
    * Remove isolated margin from an existing position (on-chain)
    * @param params Margin adjustment parameters
    */
-  async removeMargin(params: MarginAdjustmentParams): Promise<SuiTransactionBlockResponse> {
+  async removeMargin(params: MarginAdjustmentParams): Promise<TxExecutionResult> {
     const transaction = await this.buildMarginTransaction(params, "remove");
     if (transaction) {
       return executeTxBlock(this.suiClient, transaction, this.keypair);
@@ -2433,13 +2438,13 @@ export class DipCoinPerpSDK {
     const priceIds = [priceFeedId];
     const priceUpdateData = await this.priceServiceConnection.getPriceFeedsUpdateData(priceIds);
 
-    const [priceInfoObject, clockObject] = await this.suiClient.multiGetObjects({
-      ids: [priceInfoObjectId, "0x6"],
-      options: { showContent: true, showBcs: true, showType: true },
-    });
+    const [priceInfoJson, clockJson] = await getObjectsJson(this.suiClient, [
+      priceInfoObjectId,
+      "0x6",
+    ]);
 
-    const oracleTime = this.extractOracleArrivalTime(priceInfoObject);
-    const clockTime = this.extractClockTimeSeconds(clockObject);
+    const oracleTime = this.extractOracleArrivalTime(priceInfoJson);
+    const clockTime = this.extractClockTimeSeconds(clockJson);
 
     if (clockTime - oracleTime > 5) {
       await this.pythClient.updatePriceFeeds(tx, priceUpdateData, priceIds);
@@ -2534,18 +2539,15 @@ export class DipCoinPerpSDK {
 
     if (!this.pythClient) {
       this.pythClient = new SuiPythClient(
-        this.suiClient as any,
+        this.suiClient,
         config.pythStateId,
         config.wormholeStateId
       );
     }
   }
 
-  private extractOracleArrivalTime(objectResponse: any): number {
-    const priceInfo =
-      objectResponse?.data?.content &&
-      "fields" in objectResponse.data.content &&
-      (objectResponse.data.content as any).fields?.price_info?.fields?.arrival_time;
+  private extractOracleArrivalTime(priceInfoJson: any): number {
+    const priceInfo = priceInfoJson?.price_info?.arrival_time;
     if (typeof priceInfo === "number") {
       return priceInfo;
     }
@@ -2556,11 +2558,8 @@ export class DipCoinPerpSDK {
     return 0;
   }
 
-  private extractClockTimeSeconds(objectResponse: any): number {
-    const timestamp =
-      objectResponse?.data?.content &&
-      "fields" in objectResponse.data.content &&
-      (objectResponse.data.content as any).fields?.timestamp_ms;
+  private extractClockTimeSeconds(clockJson: any): number {
+    const timestamp = clockJson?.timestamp_ms;
     if (typeof timestamp === "number") {
       return timestamp / 1000;
     }
@@ -2653,7 +2652,20 @@ export class DipCoinPerpSDK {
     owner?: string
   ): Promise<SDKResponse<{ coinType: string; totalBalance: string }[]>> {
     try {
-      const balances = await this.suiClient.getAllBalances({ owner: owner || this.walletAddress });
+      const balances: { coinType: string; totalBalance: string }[] = [];
+      let cursor: string | null = null;
+      do {
+        const page: Awaited<ReturnType<SuiClient["core"]["listBalances"]>> =
+          await this.suiClient.core.listBalances({ owner: owner || this.walletAddress, cursor });
+        for (const b of page.balances) {
+          // gRPC returns framework types in long form (0x00..02::sui::SUI); keep JSON-RPC's short form
+          balances.push({
+            coinType: b.coinType.replace(/^0x0{63}([0-9a-f])::/, "0x$1::"),
+            totalBalance: b.balance,
+          });
+        }
+        cursor = page.hasNextPage ? page.cursor : null;
+      } while (cursor);
       return { status: true, data: balances };
     } catch (error) {
       return { status: false, error: formatError(error) };
@@ -2668,7 +2680,7 @@ export class DipCoinPerpSDK {
     coinType: string
   ): Promise<SDKResponse<{ decimals: number; symbol: string; name: string }>> {
     try {
-      const metadata = await this.suiClient.getCoinMetadata({ coinType });
+      const { coinMetadata: metadata } = await this.suiClient.core.getCoinMetadata({ coinType });
       if (!metadata) {
         return { status: false, error: "Coin metadata not found" };
       }
@@ -2800,11 +2812,8 @@ export class DipCoinPerpSDK {
     const start = Date.now();
     const deadline = start + 180_000;
     while (Date.now() <= deadline) {
-      const clock = await this.suiClient.getObject({
-        id: "0x6",
-        options: { showContent: true },
-      });
-      const clockMs = Number((clock.data?.content as any)?.fields?.timestamp_ms);
+      const clock = await getObjectJson(this.suiClient, "0x6");
+      const clockMs = Number(clock?.timestamp_ms);
       if (!Number.isFinite(clockMs)) return;
 
       const waitMs = timestamp - clockMs + 10_000;
@@ -2829,11 +2838,8 @@ export class DipCoinPerpSDK {
     const start = Date.now();
     const deadline = start + 180_000;
     while (Date.now() <= deadline) {
-      const clock = await this.suiClient.getObject({
-        id: "0x6",
-        options: { showContent: true },
-      });
-      const clockMs = Number((clock.data?.content as any)?.fields?.timestamp_ms);
+      const clock = await getObjectJson(this.suiClient, "0x6");
+      const clockMs = Number(clock?.timestamp_ms);
       if (!Number.isFinite(clockMs)) return;
 
       const waitMs = maxTimestamp - clockMs + 10_000;
@@ -2959,14 +2965,17 @@ export class DipCoinPerpSDK {
     const tx = new Transaction();
     this.appendPriceFeedUpdates(tx, entries);
     tx.setSender(this.walletAddress);
-    const result = await this.suiClient.devInspectTransactionBlock({
-      sender: this.walletAddress,
-      transactionBlock: tx,
+    // checksEnabled=false mirrors JSON-RPC devInspect: no real gas coin is required
+    const result = await this.suiClient.core.simulateTransaction({
+      transaction: tx,
+      checksEnabled: false,
     });
-    const status = result.effects?.status?.status;
-    if (status === "success") return;
-    const error = result.effects?.status?.error || result.error || "unknown price_feed error";
-    throw new Error(`price_feed validation failed: ${error}`);
+    const simulated =
+      result.$kind === "Transaction" ? result.Transaction : result.FailedTransaction;
+    if (simulated.status.success) return;
+    throw new Error(
+      `price_feed validation failed: ${formatExecutionError(simulated.status.error)}`
+    );
   }
 
   /**
@@ -3002,17 +3011,15 @@ export class DipCoinPerpSDK {
 
   private async getOnChainPerpetualIds(): Promise<string[]> {
     const pcId = this.getDeploymentProtocolConfigId();
-    const df = await this.suiClient.getDynamicFieldObject({
-      parentId: pcId,
-      name: {
+    const df = await getDynamicFieldJson<{ perpetuals?: { contents?: unknown } }>(
+      this.suiClient,
+      pcId,
+      {
         type: "vector<u8>",
-        value: Array.from(Buffer.from("perpetual_registry", "utf8")),
-      },
-    });
-    const content = df.data?.content as
-      | { fields?: { value?: { fields?: { perpetuals?: { fields?: { contents?: unknown } } } } } }
-      | undefined;
-    const contents = content?.fields?.value?.fields?.perpetuals?.fields?.contents;
+        bcs: bcs.vector(bcs.u8()).serialize(Buffer.from("perpetual_registry", "utf8")).toBytes(),
+      }
+    );
+    const contents = df?.value?.perpetuals?.contents;
     if (!Array.isArray(contents)) {
       throw new Error(
         "Could not read perpetual_registry from on-chain ProtocolConfig. Vault NAV requires the full list of perpetuals registered in the protocol."
@@ -3070,11 +3077,8 @@ export class DipCoinPerpSDK {
     return { nav, tx: t };
   }
 
-  private async signAndExecuteVaultTx(tx: Transaction): Promise<SuiTransactionBlockResponse> {
-    return signAndExecuteTransactionWithFreshGas(this.suiClient, tx, this.keypair, {
-      showEffects: true,
-      showObjectChanges: true,
-    });
+  private async signAndExecuteVaultTx(tx: Transaction): Promise<TxExecutionResult> {
+    return signAndExecuteTransactionWithFreshGas(this.suiClient, tx, this.keypair);
   }
 
   /**
@@ -3525,24 +3529,17 @@ export class DipCoinPerpSDK {
    */
   async getVaultLockPeriodMs(): Promise<number> {
     const configId = this.getVaultConfigId();
-    const obj = await this.suiClient.getObject({
-      id: configId,
-      options: { showContent: true },
-    });
-    const fields = (obj.data?.content as any)?.fields;
-    return Number(fields?.lock_period_ms || 86400000);
+    const config = await getObjectJson(this.suiClient, configId);
+    return Number(config?.lock_period_ms || 86400000);
   }
 
   async getVaultInfo(vaultID: string): Promise<SDKResponse<any>> {
     try {
-      const obj = await this.suiClient.getObject({
-        id: vaultID,
-        options: { showContent: true, showType: true },
-      });
-      if (!obj.data?.content || obj.data.content.dataType !== "moveObject") {
+      const vault = await getObjectJson(this.suiClient, vaultID);
+      if (!vault || typeof vault !== "object") {
         return { status: false, error: "Vault object not found or not a Move object" };
       }
-      return { status: true, data: (obj.data.content as any).fields };
+      return { status: true, data: vault };
     } catch (error) {
       return { status: false, error: formatError(error) };
     }
@@ -3559,19 +3556,19 @@ export class DipCoinPerpSDK {
       if (!vaultResult.status || !vaultResult.data) {
         return { status: false, error: vaultResult.error || "Failed to get vault info" };
       }
-      const tableId = vaultResult.data.user_positions?.fields?.id?.id;
+      const tableId = vaultResult.data.user_positions?.id;
       if (!tableId) {
         return { status: false, error: "Vault has no user_positions table" };
       }
       // Query dynamic field for user's position
-      const result = await this.suiClient.getDynamicFieldObject({
-        parentId: tableId,
-        name: { type: "address", value: address },
+      const result = await getDynamicFieldJson(this.suiClient, tableId, {
+        type: "address",
+        bcs: bcs.Address.serialize(address).toBytes(),
       });
-      if (!result.data?.content || result.data.content.dataType !== "moveObject") {
+      if (!result) {
         return { status: false, error: "No position found for this address in the vault" };
       }
-      const fields = (result.data.content as any).fields?.value?.fields;
+      const fields = result.value;
       if (!fields) {
         return { status: false, error: "Failed to parse position data" };
       }

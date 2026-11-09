@@ -8,7 +8,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "rootDir": ".",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "sourceMap": true,
     "resolveJsonModule": true
   },

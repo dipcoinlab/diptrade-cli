@@ -57,7 +57,7 @@ export function fromExportedKeypair(
     schema = secret.schema;
   } else {
     const decoded = decodeSuiPrivateKey(secret);
-    schema = decoded.schema as "ED25519" | "Secp256k1" | "Secp256r1";
+    schema = decoded.scheme as "ED25519" | "Secp256k1" | "Secp256r1";
     secretKey = decoded.secretKey;
   }
 

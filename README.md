@@ -49,6 +49,7 @@ The generated `~/.config/dipcoin/env` contains:
 | `DIPCOIN_PRIVATE_KEY` | One of these | Sui private key (`suiprivkey1...`), supports ED25519/Secp256k1/Secp256r1 |
 | `DIPCOIN_MNEMONIC` | is required | 12/15/18/21/24-word BIP39 mnemonic |
 | `DIPCOIN_NETWORK` | No | `mainnet` or `testnet` (default: `mainnet`) |
+| `DIPCOIN_RPC_URL` | No | Sui gRPC-Web endpoint (default: public fullnode `https://fullnode.<network>.sui.io:443`, rate-limited). JSON-RPC URLs are not supported |
 
 If both are set, `DIPCOIN_PRIVATE_KEY` takes precedence. Manual editing is supported but discouraged — prefer the `setup` commands so format and permissions stay correct.
 

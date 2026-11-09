@@ -24,8 +24,8 @@
     "trading"
   ],
   "dependencies": {
-    "@mysten/sui": "^1.20.0",
-    "@pythnetwork/pyth-sui-js": "^2.4.0",
+    "@mysten/sui": "^2.39.1",
+    "@pythnetwork/pyth-sui-js": "^4.0.0",
     "@scure/bip39": "^2.2.0",
     "axios": "^1.6.0",
     "bignumber.js": "^9.2.0",
@@ -37,7 +37,7 @@
   "devDependencies": {
     "@rollup/plugin-commonjs": "^28.0.3",
     "@rollup/plugin-node-resolve": "^16.0.1",
-    "@rollup/plugin-typescript": "^8.5.0",
+    "@rollup/plugin-typescript": "^12.3.1",
     "@types/bignumber.js": "^5.0.4",
     "@types/node": "^20.8.10",
     "@typescript-eslint/eslint-plugin": "^5.26.0",
@@ -48,6 +48,7 @@
     "prettier": "^2.6.2",
     "rollup": "^2.79.0",
     "ts-node": "^10.9.1",
+    "tslib": "^2.9.1",
     "tsx": "^4.20.6",
     "typescript": "^5.0.4"
   }
