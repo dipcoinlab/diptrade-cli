@@ -619,7 +619,7 @@ Patterns to remember:
 
 ## Where to Go Next
 
-- Full CLI reference: [SKILL.md](https://raw.githubusercontent.com/dipcoinlab/dipcoin-cli/main/SKILL.md)
+- Full CLI reference: [SKILL.md](https://raw.githubusercontent.com/dipcoinlab/diptrade-cli/main/SKILL.md)
 - DipCoin website: <https://dipcoin.io>
 - Vibe trading guide: [how-to-vibe-trading-on-dipcoin.md](how-to-vibe-trading-on-dipcoin.md)
 

@@ -25,7 +25,7 @@ Paste this message into the chat:
 
 ```text
 Please install and follow this DipCoin trading skill to help me trade:
-https://raw.githubusercontent.com/dipcoinlab/dipcoin-cli/main/SKILL.md
+https://raw.githubusercontent.com/dipcoinlab/diptrade-cli/main/SKILL.md
 ```
 
 Your AI agent will:
@@ -152,7 +152,7 @@ Vaults work like managed trading pools: you deposit USDC, and a vault manager tr
 
 ## Where to Go Next
 
-- Full skill reference: [SKILL.md](https://raw.githubusercontent.com/dipcoinlab/dipcoin-cli/main/SKILL.md)
+- Full skill reference: [SKILL.md](https://raw.githubusercontent.com/dipcoinlab/diptrade-cli/main/SKILL.md)
 - DipCoin website: <https://dipcoin.io>
 - Vault discovery prompt: *"Find me a good vault to deposit into."*
 

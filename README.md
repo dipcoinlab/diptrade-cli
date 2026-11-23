@@ -7,7 +7,7 @@ TypeScript CLI for perpetual futures trading on the Sui blockchain.
 Send the following skill link to your AI Agent, and it will guide you through the rest — including installation, configuration, and trading:
 
 ```
-https://raw.githubusercontent.com/dipcoinlab/dipcoin-cli/main/SKILL.md
+https://raw.githubusercontent.com/dipcoinlab/diptrade-cli/main/SKILL.md
 ```
 
 ## Usage For Human
