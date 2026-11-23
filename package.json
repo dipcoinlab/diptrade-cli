@@ -1,6 +1,6 @@
 {
   "name": "diptrade-cli",
-  "version": "1.3.7",
+  "version": "1.4.0",
   "description": "DipCoin Perpetual Trading CLI",
   "bin": {
     "diptrade-cli": "dist/cli.cjs"
