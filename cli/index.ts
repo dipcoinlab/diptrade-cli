@@ -30,7 +30,7 @@ function getPackageVersion(): string {
 const program = new Command();
 
 program
-  .name("dipcoin-cli")
+  .name("diptrade-cli")
   .description("DipCoin Perpetual Trading CLI")
   .version(getPackageVersion())
   .option("--json", "Output in JSON format");

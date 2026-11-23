@@ -201,7 +201,7 @@ export function registerSetupCommands(program: Command) {
         console.log(`Address: ${address}`);
         console.log("");
         console.log(
-          "Next: transfer USDC on Sui to the address above, then run: dipcoin-cli account deposit <amount>"
+          "Next: transfer USDC on Sui to the address above, then run: diptrade-cli account deposit <amount>"
         );
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);

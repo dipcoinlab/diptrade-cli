@@ -1,6 +1,6 @@
 # How to Vibe Trading on DipCoin
 
-**Vibe trading** means you do not need to click through charts, memorize CLI commands, or manage every step by hand. You describe what you want in plain English, such as "buy BTC", "show my position", or "close the trade", and your AI agent uses `dipcoin-cli` to help you.
+**Vibe trading** means you do not need to click through charts, memorize CLI commands, or manage every step by hand. You describe what you want in plain English, such as "buy BTC", "show my position", or "close the trade", and your AI agent uses `diptrade-cli` to help you.
 
 This guide walks you through the setup. It usually takes about 5 minutes.
 
@@ -31,7 +31,7 @@ https://raw.githubusercontent.com/dipcoinlab/dipcoin-cli/main/SKILL.md
 Your AI agent will:
 
 1. Fetch and read the DipCoin skill.
-2. Install `dipcoin-cli`.
+2. Install `diptrade-cli`.
 3. Walk you through the next steps.
 
 You do not need to memorize any commands. Follow the agent's prompts, review each action carefully, and approve it only when it looks correct.

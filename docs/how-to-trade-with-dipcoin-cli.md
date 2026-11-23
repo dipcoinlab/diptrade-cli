@@ -1,4 +1,4 @@
-# How to Trade on DipCoin with dipcoin-cli
+# How to Trade on DipCoin with diptrade-cli
 
 This guide teaches the full DipCoin CLI workflow from the terminal: install the tool, configure a wallet, fund your DipCoin DEX account, inspect markets, open a position, manage risk, close the position, and review what happened.
 
@@ -24,20 +24,20 @@ Keep these rules in mind:
 
 ---
 
-## Step 1 - Install dipcoin-cli
+## Step 1 - Install diptrade-cli
 
 Install the latest version:
 
 ```bash
-npm install -g dipcoin-cli@latest
+npm install -g diptrade-cli@latest
 ```
 
-After this finishes without an error, the `dipcoin-cli` command should be available globally.
+After this finishes without an error, the `diptrade-cli` command should be available globally.
 
 Check your installed version:
 
 ```bash
-dipcoin-cli --version
+diptrade-cli --version
 ```
 
 You should see a version number. The exact number changes over time as the CLI is updated.
@@ -45,7 +45,7 @@ You should see a version number. The exact number changes over time as the CLI i
 You can compare it with the latest npm release:
 
 ```bash
-npm view dipcoin-cli version
+npm view diptrade-cli version
 ```
 
 If npm shows a newer version than your local CLI, run the install command again.
@@ -54,7 +54,7 @@ If npm shows a newer version than your local CLI, run the install command again.
 
 ## Step 2 - Set Up Your Wallet
 
-`dipcoin-cli` stores wallet credentials in:
+`diptrade-cli` stores wallet credentials in:
 
 ```text
 ~/.config/dipcoin/env
@@ -67,7 +67,7 @@ You only need one of the two setup paths below.
 Use this if you already have a Sui private key or mnemonic:
 
 ```bash
-dipcoin-cli setup import
+diptrade-cli setup import
 ```
 
 The CLI opens a hidden terminal prompt. Paste your private key or mnemonic there, not in chat and not in a document.
@@ -86,7 +86,7 @@ The CLI should not print your private key or mnemonic.
 Use this if you want the CLI to create a fresh Sui wallet:
 
 ```bash
-dipcoin-cli setup generate
+diptrade-cli setup generate
 ```
 
 When setup succeeds, you should see the config path, network, and new public Sui address. Send SUI and USDC on the Sui network to that address before you try to trade.
@@ -103,7 +103,7 @@ DipCoin has two balance layers:
 ### Check Your Sui Wallet
 
 ```bash
-dipcoin-cli balance
+diptrade-cli balance
 ```
 
 Use this command to confirm that your wallet has SUI for gas and USDC to deposit.
@@ -118,7 +118,7 @@ If you do not see enough SUI, on-chain transactions such as deposit, withdraw, m
 ### Check Your DipCoin DEX Account
 
 ```bash
-dipcoin-cli account info
+diptrade-cli account info
 ```
 
 Use this command to understand whether you can trade right now.
@@ -143,7 +143,7 @@ Before trading, move USDC from your Sui wallet into the DipCoin DEX.
 Example:
 
 ```bash
-dipcoin-cli account deposit 100
+diptrade-cli account deposit 100
 ```
 
 This submits an on-chain Sui transaction. If it succeeds, the CLI prints a success message and a transaction digest after `Tx:`.
@@ -151,7 +151,7 @@ This submits an on-chain Sui transaction. If it succeeds, the CLI prints a succe
 Confirm the deposit:
 
 ```bash
-dipcoin-cli account info
+diptrade-cli account info
 ```
 
 You are ready to trade when `Wallet Balance` and `Free Collateral` show available USDC in the DEX account.
@@ -167,7 +167,7 @@ Before placing a trade, check which markets exist and what the current price loo
 ### List Available Markets
 
 ```bash
-dipcoin-cli market pairs
+diptrade-cli market pairs
 ```
 
 This shows a table of tradable perpetual markets.
@@ -183,7 +183,7 @@ You can usually type `BTC` instead of `BTC-PERP`; the CLI normalizes common symb
 ### Check the Current Ticker
 
 ```bash
-dipcoin-cli market ticker BTC
+diptrade-cli market ticker BTC
 ```
 
 Use this before opening a trade. It gives you the current market snapshot.
@@ -201,7 +201,7 @@ Rows to know:
 ### Check Liquidity with the Order Book
 
 ```bash
-dipcoin-cli market orderbook BTC
+diptrade-cli market orderbook BTC
 ```
 
 The order book is split into asks and bids:
@@ -221,8 +221,8 @@ This helps you judge whether a market order is likely to fill near the current p
 The two core trade commands are:
 
 ```bash
-dipcoin-cli trade buy <symbol> <margin>USDC <leverage>x
-dipcoin-cli trade sell <symbol> <margin>USDC <leverage>x
+diptrade-cli trade buy <symbol> <margin>USDC <leverage>x
+diptrade-cli trade sell <symbol> <margin>USDC <leverage>x
 ```
 
 Use `buy` to open a long position. Use `sell` to open a short position.
@@ -230,13 +230,13 @@ Use `buy` to open a long position. Use `sell` to open a short position.
 Example long:
 
 ```bash
-dipcoin-cli trade buy BTC 50USDC 10x
+diptrade-cli trade buy BTC 50USDC 10x
 ```
 
 Example short:
 
 ```bash
-dipcoin-cli trade sell BTC 50USDC 10x
+diptrade-cli trade sell BTC 50USDC 10x
 ```
 
 Run only the side you actually intend to trade.
@@ -248,13 +248,13 @@ After submitting an order, the CLI shows how your USDC margin was converted into
 You can attach risk controls when opening a position:
 
 ```bash
-dipcoin-cli trade buy BTC 50USDC 10x --tp <takeProfitPrice> --sl <stopLossPrice>
+diptrade-cli trade buy BTC 50USDC 10x --tp <takeProfitPrice> --sl <stopLossPrice>
 ```
 
 For a short:
 
 ```bash
-dipcoin-cli trade sell BTC 50USDC 10x --tp <takeProfitPrice> --sl <stopLossPrice>
+diptrade-cli trade sell BTC 50USDC 10x --tp <takeProfitPrice> --sl <stopLossPrice>
 ```
 
 Options to remember:
@@ -269,7 +269,7 @@ Options to remember:
 Add `--price` if you do not want a market order:
 
 ```bash
-dipcoin-cli trade buy BTC 50USDC 10x --price <limitPrice>
+diptrade-cli trade buy BTC 50USDC 10x --price <limitPrice>
 ```
 
 Pattern to remember: no `--price` means market order; adding `--price` makes it a limit order.
@@ -281,13 +281,13 @@ Pattern to remember: no `--price` means market order; adding `--price` makes it 
 List all open positions:
 
 ```bash
-dipcoin-cli position list
+diptrade-cli position list
 ```
 
 Filter to one market:
 
 ```bash
-dipcoin-cli position list --symbol BTC-PERP
+diptrade-cli position list --symbol BTC-PERP
 ```
 
 Use this command after opening, adjusting, or closing a trade.
@@ -314,7 +314,7 @@ Once a position is open, you can add margin, remove margin, or set TP/SL orders.
 ### Add Margin
 
 ```bash
-dipcoin-cli position margin add BTC 20
+diptrade-cli position margin add BTC 20
 ```
 
 This adds 20 USDC of isolated margin to your BTC position. The goal is to give the position more collateral and move liquidation farther away. This is an on-chain action, so it uses SUI gas and prints a transaction digest when it succeeds.
@@ -322,7 +322,7 @@ This adds 20 USDC of isolated margin to your BTC position. The goal is to give t
 ### Remove Margin
 
 ```bash
-dipcoin-cli position margin remove BTC 10
+diptrade-cli position margin remove BTC 10
 ```
 
 This removes 10 USDC of isolated margin from your BTC position. Use it carefully: if removing margin would make the position unsafe, the transaction can fail.
@@ -335,13 +335,13 @@ This removes 10 USDC of isolated margin from your BTC position. Use it carefully
 List open orders:
 
 ```bash
-dipcoin-cli trade orders
+diptrade-cli trade orders
 ```
 
 Filter to one market:
 
 ```bash
-dipcoin-cli trade orders --symbol BTC-PERP
+diptrade-cli trade orders --symbol BTC-PERP
 ```
 
 Columns to know:
@@ -358,10 +358,10 @@ Columns to know:
 Cancel an order:
 
 ```bash
-dipcoin-cli trade cancel BTC <orderHash>
+diptrade-cli trade cancel BTC <orderHash>
 ```
 
-After cancellation, run `dipcoin-cli trade orders --symbol BTC-PERP` again. The cancelled order should no longer appear as open.
+After cancellation, run `diptrade-cli trade orders --symbol BTC-PERP` again. The cancelled order should no longer appear as open.
 
 ---
 
@@ -372,13 +372,13 @@ The CLI knows your current position, so it can figure out the side and the quant
 ### Close 100% of one position
 
 ```bash
-dipcoin-cli position close BTC
+diptrade-cli position close BTC
 ```
 
 ### Close half of one position
 
 ```bash
-dipcoin-cli position close BTC --percent 50
+diptrade-cli position close BTC --percent 50
 ```
 
 `--percent` accepts any number in `(0, 100]`. The CLI rounds down to the market's step size, so very small percentages on illiquid pairs may not be allowed — the command will tell you if so.
@@ -386,17 +386,17 @@ dipcoin-cli position close BTC --percent 50
 ### Close every open position at once
 
 ```bash
-dipcoin-cli position close-all
+diptrade-cli position close-all
 ```
 
-You can also partially close every position by combining the two: `dipcoin-cli position close-all --percent 50`.
+You can also partially close every position by combining the two: `diptrade-cli position close-all --percent 50`.
 
 Behind the scenes the CLI just submits reduce-only market orders against each position, in the right direction. You don't need to look up `Qty` or `Side` yourself.
 
 Confirm the result:
 
 ```bash
-dipcoin-cli position list
+diptrade-cli position list
 ```
 
 If a position is fully closed it will be gone from the list. If you only closed part of it, the `Qty` column will be smaller.
@@ -406,7 +406,7 @@ If a position is fully closed it will be gone from the list. If you only closed 
 If you'd rather pass the exact quantity yourself (for example to close 0.007 BTC of a 0.014 long), the old reduce-only pattern still works:
 
 ```bash
-dipcoin-cli trade sell BTC 0 10x --qty 0.007 --reduce-only
+diptrade-cli trade sell BTC 0 10x --qty 0.007 --reduce-only
 ```
 
 For a short, use `trade buy ... --reduce-only` instead. The `0` placeholder is there because `--qty` overrides the USDC-margin field.
@@ -420,7 +420,7 @@ History commands teach you what happened after orders were submitted.
 ### Order History
 
 ```bash
-dipcoin-cli history orders --symbol BTC-PERP --page 1 --size 20
+diptrade-cli history orders --symbol BTC-PERP --page 1 --size 20
 ```
 
 Columns to know:
@@ -439,7 +439,7 @@ Use this command to confirm fills, cancelled orders, close orders, and realized 
 ### Funding History
 
 ```bash
-dipcoin-cli history funding --symbol BTC-PERP --page 1 --size 20
+diptrade-cli history funding --symbol BTC-PERP --page 1 --size 20
 ```
 
 Columns to know:
@@ -457,7 +457,7 @@ Use this to understand funding payments on open perpetual positions.
 ### Balance-Change History
 
 ```bash
-dipcoin-cli history balance --page 1 --size 20
+diptrade-cli history balance --page 1 --size 20
 ```
 
 Columns to know:
@@ -476,7 +476,7 @@ Use this to audit deposits, withdrawals, and other account balance movements.
 When you want to move USDC back to your Sui wallet, withdraw from the DEX:
 
 ```bash
-dipcoin-cli account withdraw 50
+diptrade-cli account withdraw 50
 ```
 
 This submits an on-chain transaction, uses SUI gas, and prints a transaction digest if successful.
@@ -484,8 +484,8 @@ This submits an on-chain transaction, uses SUI gas, and prints a transaction dig
 Confirm both balance layers:
 
 ```bash
-dipcoin-cli account info
-dipcoin-cli balance
+diptrade-cli account info
+diptrade-cli balance
 ```
 
 `account info` shows your remaining DEX collateral. `balance` shows your on-chain wallet balances.
@@ -499,7 +499,7 @@ Vaults are managed trading pools. You deposit USDC into a vault, and the vault t
 List public vaults:
 
 ```bash
-dipcoin-cli vault list-all --filter Leading --page 1 --page-size 10
+diptrade-cli vault list-all --filter Leading --page 1 --page-size 10
 ```
 
 Columns to know:
@@ -516,7 +516,7 @@ Columns to know:
 Inspect one vault:
 
 ```bash
-dipcoin-cli vault info <vaultId>
+diptrade-cli vault info <vaultId>
 ```
 
 Important rows include `Vault ID`, `Name`, `Creator`, `Trader`, `Deposit Status`, `Total Shares`, `Max Cap`, `Min Deposit`, `Creator Min Share Ratio`, `Creator Profit Share Ratio`, and `Auto Close on Withdraw`.
@@ -524,7 +524,7 @@ Important rows include `Vault ID`, `Name`, `Creator`, `Trader`, `Deposit Status`
 Deposit into a vault:
 
 ```bash
-dipcoin-cli vault deposit <vaultId> 100
+diptrade-cli vault deposit <vaultId> 100
 ```
 
 This is an on-chain transaction. If it succeeds, the CLI prints a transaction digest.
@@ -532,7 +532,7 @@ This is an on-chain transaction. If it succeeds, the CLI prints a transaction di
 Check your vault position:
 
 ```bash
-dipcoin-cli vault position <vaultId>
+diptrade-cli vault position <vaultId>
 ```
 
 Rows to know:
@@ -553,7 +553,7 @@ You do not need to memorize every command. The CLI has built-in help, and the fa
 Start with the top-level help:
 
 ```bash
-dipcoin-cli --help
+diptrade-cli --help
 ```
 
 This shows the main command areas, such as `account`, `trade`, `position`, `market`, `history`, `vault`, `balance`, and `referral`.
@@ -561,9 +561,9 @@ This shows the main command areas, such as `account`, `trade`, `position`, `mark
 Then inspect a command area:
 
 ```bash
-dipcoin-cli trade --help
-dipcoin-cli position --help
-dipcoin-cli vault --help
+diptrade-cli trade --help
+diptrade-cli position --help
+diptrade-cli vault --help
 ```
 
 This shows the available subcommands inside that area. For example, `trade --help` shows that trading supports commands like `buy`, `sell`, `cancel`, and `orders`.
@@ -571,17 +571,17 @@ This shows the available subcommands inside that area. For example, `trade --hel
 You can go one level deeper to inspect a specific command:
 
 ```bash
-dipcoin-cli trade buy --help
-dipcoin-cli trade sell --help
-dipcoin-cli position tpsl --help
+diptrade-cli trade buy --help
+diptrade-cli trade sell --help
+diptrade-cli position tpsl --help
 ```
 
 This is where you learn the exact arguments and options a command accepts. For example, trade commands show arguments such as `<symbol>`, `<amount>`, and `<leverage>`, plus options like `--qty`, `--price`, `--reduce-only`, `--tp`, and `--sl`.
 
-Most `dipcoin-cli` commands follow this pattern:
+Most `diptrade-cli` commands follow this pattern:
 
 ```bash
-dipcoin-cli <area> <action> [arguments] [options]
+diptrade-cli <area> <action> [arguments] [options]
 ```
 
 Useful areas to explore:
@@ -608,7 +608,7 @@ Patterns to remember:
 
 ## Six Safety Rules
 
-1. **Never expose your private key or mnemonic.** Only enter it through `dipcoin-cli setup import`, which uses hidden terminal input.
+1. **Never expose your private key or mnemonic.** Only enter it through `diptrade-cli setup import`, which uses hidden terminal input.
 2. **Start small.** Use a small deposit and a small first trade until you understand the full workflow.
 3. **Read every command before pressing Enter.** Check the symbol, side, margin, leverage, quantity, take profit, and stop loss.
 4. **Respect leverage.** 10x leverage can multiply profits, but it also multiplies losses. A 10% move against a 10x position can wipe out the margin.

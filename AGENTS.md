@@ -4,7 +4,7 @@ This file provides guidance to Codex (Codex.ai/code) when working with code in t
 
 ## Project Overview
 
-DipCoin Perpetual Trading CLI (`dipcoin-cli`) — a TypeScript CLI and SDK for perpetual futures trading on the Sui blockchain. It interacts with DipCoin's on-chain smart contracts (Move) and off-chain REST API for order placement, position management, and account operations.
+DipCoin Perpetual Trading CLI (`diptrade-cli`) — a TypeScript CLI and SDK for perpetual futures trading on the Sui blockchain. It interacts with DipCoin's on-chain smart contracts (Move) and off-chain REST API for order placement, position management, and account operations.
 
 The codebase has three layers:
 1. **CLI** (`cli/`) — Commander.js commands for user interaction

@@ -1,11 +1,11 @@
 ---
-name: dipcoin-cli
-description: Use when trading perpetual futures on DipCoin (Sui blockchain) via the `dipcoin-cli` tool — placing buy/sell orders (market/limit, with TP/SL), managing positions, depositing/withdrawing USDC, vault operations (create/deposit/withdraw), account/balance/history queries, and referral. Covers install, credential setup via `dipcoin-cli setup import` (existing key) or `dipcoin-cli setup generate` (new wallet), and full command reference.
+name: diptrade-cli
+description: Use when trading perpetual futures on DipCoin (Sui blockchain) via the `diptrade-cli` tool — placing buy/sell orders (market/limit, with TP/SL), managing positions, depositing/withdrawing USDC, vault operations (create/deposit/withdraw), account/balance/history queries, and referral. Covers install, credential setup via `diptrade-cli setup import` (existing key) or `diptrade-cli setup generate` (new wallet), and full command reference.
 ---
 
 # DipCoin Perpetual Trading CLI — Agent Skill Guide
 
-This document teaches AI agents (e.g. OpenClaw) how to install, configure, and use the `dipcoin-cli` tool for perpetual futures trading on the Sui blockchain.
+This document teaches AI agents (e.g. OpenClaw) how to install, configure, and use the `diptrade-cli` tool for perpetual futures trading on the Sui blockchain.
 
 ## Security
 
@@ -14,10 +14,10 @@ This document teaches AI agents (e.g. OpenClaw) how to install, configure, and u
 ## Installation
 
 ```bash
-npm install -g dipcoin-cli
+npm install -g diptrade-cli
 ```
 
-After installation, the `dipcoin-cli` command is available globally.
+After installation, the `diptrade-cli` command is available globally.
 
 ## Configuration
 
@@ -28,8 +28,8 @@ Credentials are stored in a single global config file at `~/.config/dipcoin/env`
 For users who already have a Sui wallet:
 
 ```bash
-dipcoin-cli setup import                  # mainnet (default)
-dipcoin-cli setup import --network testnet
+diptrade-cli setup import                  # mainnet (default)
+diptrade-cli setup import --network testnet
 ```
 
 The command interactively prompts with **hidden input** (typed/pasted characters are not echoed). The user can paste **either** a private key (`suiprivkey1...`) **or** a BIP39 mnemonic (12/15/18/21/24 words from the English wordlist). The input is auto-detected and validated:
@@ -44,11 +44,11 @@ The validated credential is written to `~/.config/dipcoin/env` as `DIPCOIN_PRIVA
 For users who do not yet have a wallet:
 
 ```bash
-dipcoin-cli setup generate                  # mainnet (default)
-dipcoin-cli setup generate --network testnet
+diptrade-cli setup generate                  # mainnet (default)
+diptrade-cli setup generate --network testnet
 ```
 
-A fresh Ed25519 keypair is created, saved to `~/.config/dipcoin/env`, and the public Sui address is printed. The user then transfers USDC (Sui network) to that address and deposits into the DEX with `dipcoin-cli account deposit <amount>`.
+A fresh Ed25519 keypair is created, saved to `~/.config/dipcoin/env`, and the public Sui address is printed. The user then transfers USDC (Sui network) to that address and deposits into the DEX with `diptrade-cli account deposit <amount>`.
 
 ### Config file format
 
@@ -70,17 +70,17 @@ When running multiple AI agents on the same machine, give each agent its own `HO
 ```bash
 mkdir -p /tmp/dipcoin-agent-a /tmp/dipcoin-agent-b
 
-HOME=/tmp/dipcoin-agent-a dipcoin-cli setup generate
-HOME=/tmp/dipcoin-agent-b dipcoin-cli setup generate
+HOME=/tmp/dipcoin-agent-a diptrade-cli setup generate
+HOME=/tmp/dipcoin-agent-b diptrade-cli setup generate
 
-HOME=/tmp/dipcoin-agent-a dipcoin-cli --json account info
-HOME=/tmp/dipcoin-agent-b dipcoin-cli --json account info
+HOME=/tmp/dipcoin-agent-a diptrade-cli --json account info
+HOME=/tmp/dipcoin-agent-b diptrade-cli --json account info
 ```
 
 For vault delegation, each isolated agent can trade with its own wallet while targeting the vault account:
 
 ```bash
-HOME=/tmp/dipcoin-agent-a dipcoin-cli --json trade buy BTC 100USDC 10x --vault <vaultId>
+HOME=/tmp/dipcoin-agent-a diptrade-cli --json trade buy BTC 100USDC 10x --vault <vaultId>
 ```
 
 Keep the working directory clean when using isolated agent homes. The CLI also loads a `.env` file from the current working directory if one exists, so run agent commands from a scratch directory without a project `.env`, or make sure that local `.env` does not contain `DIPCOIN_PRIVATE_KEY`, `DIPCOIN_MNEMONIC`, or `DIPCOIN_NETWORK` for another wallet.
@@ -90,7 +90,7 @@ Keep the working directory clean when using isolated agent homes. The CLI also l
 These options apply to all commands and must be placed **before** the subcommand:
 
 ```bash
-dipcoin-cli [global-options] <command> [command-options]
+diptrade-cli [global-options] <command> [command-options]
 ```
 
 | Option | Description |
@@ -106,21 +106,21 @@ dipcoin-cli [global-options] <command> [command-options]
 
 ```bash
 # List all available trading pairs
-dipcoin-cli --json market pairs
+diptrade-cli --json market pairs
 
 # Get ticker info (price, volume, funding rate)
-dipcoin-cli --json market ticker BTC
+diptrade-cli --json market ticker BTC
 
 # Get order book
-dipcoin-cli --json market orderbook BTC
+diptrade-cli --json market orderbook BTC
 
 # Get oracle price
-dipcoin-cli --json market oracle BTC
+diptrade-cli --json market oracle BTC
 
 # Get kline (candlestick) history — default: 1h interval, last 24h
-dipcoin-cli --json market kline BTC
-dipcoin-cli --json market kline BTC --interval 5m --count 10
-dipcoin-cli --json market kline BTC --interval 1d --from 1779000000 --to 1779800000
+diptrade-cli --json market kline BTC
+diptrade-cli --json market kline BTC --interval 5m --count 10
+diptrade-cli --json market kline BTC --interval 1d --from 1779000000 --to 1779800000
 ```
 
 Symbols auto-normalize: `BTC` becomes `BTC-PERP`. You can use either form.
@@ -131,23 +131,23 @@ Symbols auto-normalize: `BTC` becomes `BTC-PERP`. You can use either form.
 
 ```bash
 # Show account info (balance, margin, PnL)
-dipcoin-cli --json account info
+diptrade-cli --json account info
 
 # Show account info for a specific vault address
-dipcoin-cli --json account info --vault <address>
+diptrade-cli --json account info --vault <address>
 
 # Show on-chain coin balances
-dipcoin-cli --json balance
+diptrade-cli --json balance
 ```
 
 ### Deposit & Withdraw (on-chain USDC operations)
 
 ```bash
 # Deposit USDC to exchange (required before trading)
-dipcoin-cli account deposit <amount>
+diptrade-cli account deposit <amount>
 
 # Withdraw USDC from exchange
-dipcoin-cli account withdraw <amount>
+diptrade-cli account withdraw <amount>
 ```
 
 ### Trading
@@ -158,26 +158,26 @@ The default mode: specify USDC margin amount and leverage. The CLI auto-converts
 
 ```bash
 # Buy BTC with 100 USDC margin at 10x leverage (market order)
-dipcoin-cli trade buy BTC 100USDC 10x
+diptrade-cli trade buy BTC 100USDC 10x
 
 # Sell ETH with 50 USDC margin at 5x leverage
-dipcoin-cli trade sell ETH 50USDC 5x
+diptrade-cli trade sell ETH 50USDC 5x
 
 # Limit order (auto-detected from --price)
-dipcoin-cli trade buy BTC 100USDC 10x --price 95000
+diptrade-cli trade buy BTC 100USDC 10x --price 95000
 
 # With take-profit and stop-loss
-dipcoin-cli trade buy BTC 100USDC 10x --tp 105000 --sl 90000
+diptrade-cli trade buy BTC 100USDC 10x --tp 105000 --sl 90000
 ```
 
 #### Open a position (explicit quantity mode)
 
 ```bash
 # Buy 0.01 BTC at 10x leverage
-dipcoin-cli trade buy BTC 0 10x --qty 0.01
+diptrade-cli trade buy BTC 0 10x --qty 0.01
 
 # Sell 1 ETH at 5x leverage with limit price
-dipcoin-cli trade sell ETH 0 5x --qty 1 --price 3500
+diptrade-cli trade sell ETH 0 5x --qty 1 --price 3500
 ```
 
 Note: When using `--qty`, the `<amount>` argument is ignored (use 0 as placeholder).
@@ -186,18 +186,18 @@ Note: When using `--qty`, the `<amount>` argument is ignored (use 0 as placehold
 
 ```bash
 # Close 100% of a position — CLI figures out side & quantity for you
-dipcoin-cli position close BTC
+diptrade-cli position close BTC
 
 # Close half
-dipcoin-cli position close BTC --percent 50
+diptrade-cli position close BTC --percent 50
 
 # Close every open position with one command
-dipcoin-cli position close-all
-dipcoin-cli position close-all --percent 50   # halve everything
+diptrade-cli position close-all
+diptrade-cli position close-all --percent 50   # halve everything
 
 # Manual form is still supported if you want exact quantity control
-dipcoin-cli trade sell BTC 0 10x --qty 0.01 --reduce-only   # close long
-dipcoin-cli trade buy ETH 0 5x --qty 1 --reduce-only        # close short
+diptrade-cli trade sell BTC 0 10x --qty 0.01 --reduce-only   # close long
+diptrade-cli trade buy ETH 0 5x --qty 1 --reduce-only        # close short
 ```
 
 `position close` and `position close-all` accept `--vault <id>` to target a vault's positions instead of the personal account. Closes use reduce-only market orders.
@@ -205,15 +205,15 @@ dipcoin-cli trade buy ETH 0 5x --qty 1 --reduce-only        # close short
 #### Cancel orders
 
 ```bash
-dipcoin-cli trade cancel <symbol> <hash1> [hash2...]
+diptrade-cli trade cancel <symbol> <hash1> [hash2...]
 ```
 
 #### Adjust default leverage
 
 ```bash
 # Set default (ISOLATED) leverage for a market — used by future orders that don't pass an explicit value
-dipcoin-cli trade leverage BTC 10
-dipcoin-cli trade leverage ETH 5
+diptrade-cli trade leverage BTC 10
+diptrade-cli trade leverage ETH 5
 ```
 
 Off-chain REST update — only changes the user's preferred leverage, no on-chain tx. The DipCoin perp currently runs ISOLATED margin only; CROSS is not supported.
@@ -233,30 +233,30 @@ Off-chain REST update — only changes the user's preferred leverage, no on-chai
 
 ```bash
 # List all open positions
-dipcoin-cli --json position list
+diptrade-cli --json position list
 
 # Filter by symbol
-dipcoin-cli --json position list --symbol BTC-PERP
+diptrade-cli --json position list --symbol BTC-PERP
 
 # Set TP/SL on existing position (closing side: sell for long, buy for short)
-dipcoin-cli position tpsl BTC --side sell --quantity 0.01 --leverage 10 \
+diptrade-cli position tpsl BTC --side sell --quantity 0.01 --leverage 10 \
   --tp-trigger 105000 --sl-trigger 90000
 
 # TP/SL with limit order type
-dipcoin-cli position tpsl BTC --side sell --quantity 0.01 --leverage 10 \
+diptrade-cli position tpsl BTC --side sell --quantity 0.01 --leverage 10 \
   --tp-trigger 105000 --tp-type limit --tp-price 105000
 
 # Set or edit TP/SL on a vault position. Existing plan IDs are discovered automatically.
-dipcoin-cli position tpsl BTC --side sell --quantity 0.01 --leverage 10 \
+diptrade-cli position tpsl BTC --side sell --quantity 0.01 --leverage 10 \
   --vault <vaultId> --tp-trigger 105000 --sl-trigger 90000
 
 # Add/remove margin on a position
-dipcoin-cli position margin add BTC 5
-dipcoin-cli position margin remove BTC 2
+diptrade-cli position margin add BTC 5
+diptrade-cli position margin remove BTC 2
 
 # Same, but target a position held by a vault (use the vault's object ID)
-dipcoin-cli position margin add BTC 5 --vault <vaultId>
-dipcoin-cli position margin remove BTC 2 --vault <vaultId>
+diptrade-cli position margin add BTC 5 --vault <vaultId>
+diptrade-cli position margin remove BTC 2 --vault <vaultId>
 ```
 
 > **On-chain note:** `position margin add/remove`, `vault deposit/close/withdraw/claim`, and `vault fill-withdrawals` all need a freshly-signed price feed. The SDK automatically fetches one from the public `/api/perp-market-api/price/latest` endpoint and prepends a `price_feed::update_price_feed` PTB step before the real call — no extra setup needed from the user.
@@ -265,23 +265,23 @@ dipcoin-cli position margin remove BTC 2 --vault <vaultId>
 
 ```bash
 # List all open orders
-dipcoin-cli --json trade orders
+diptrade-cli --json trade orders
 
 # Filter by symbol
-dipcoin-cli --json trade orders --symbol BTC-PERP
+diptrade-cli --json trade orders --symbol BTC-PERP
 ```
 
 ### History
 
 ```bash
 # Order history
-dipcoin-cli --json history orders --symbol BTC-PERP --page 1 --size 20
+diptrade-cli --json history orders --symbol BTC-PERP --page 1 --size 20
 
 # Funding settlements
-dipcoin-cli --json history funding --symbol BTC-PERP
+diptrade-cli --json history funding --symbol BTC-PERP
 
 # Balance changes
-dipcoin-cli --json history balance
+diptrade-cli --json history balance
 ```
 
 All history commands support `--vault <address>` and `--begin-time <ms>` (epoch milliseconds).
@@ -290,59 +290,59 @@ All history commands support `--vault <address>` and `--begin-time <ms>` (epoch 
 
 ```bash
 # Create a vault
-dipcoin-cli vault create --name "My Vault" --trader <address> --max-cap 10000 \
+diptrade-cli vault create --name "My Vault" --trader <address> --max-cap 10000 \
   --min-deposit 100 --creator-share 10 --profit-share 20 --initial 1000
 
 # List your vaults
-dipcoin-cli --json vault list
+diptrade-cli --json vault list
 
 # List all public vaults (with pagination and filter)
-dipcoin-cli --json vault list-all                             # page 1, 10 per page
-dipcoin-cli --json vault list-all --page 2 --page-size 20    # page 2, 20 per page
-dipcoin-cli --json vault list-all --filter Leading            # Filter: All, Leading, Newest, HotDeposit
+diptrade-cli --json vault list-all                             # page 1, 10 per page
+diptrade-cli --json vault list-all --page 2 --page-size 20    # page 2, 20 per page
+diptrade-cli --json vault list-all --filter Leading            # Filter: All, Leading, Newest, HotDeposit
 
 # Vault details
-dipcoin-cli --json vault info <vaultId>
+diptrade-cli --json vault info <vaultId>
 
 # Check your position in a vault (shares, estimated USDC value)
-dipcoin-cli --json vault position <vaultId>
-dipcoin-cli --json vault position <vaultId> --address <addr>  # query another address
+diptrade-cli --json vault position <vaultId>
+diptrade-cli --json vault position <vaultId> --address <addr>  # query another address
 
 # Deposit/withdraw from vault
-dipcoin-cli vault deposit <vaultId> <amount>
-dipcoin-cli vault withdraw <vaultId> <shares>
-dipcoin-cli vault withdraw <vaultId> --all   # withdraw all shares
+diptrade-cli vault deposit <vaultId> <amount>
+diptrade-cli vault withdraw <vaultId> <shares>
+diptrade-cli vault withdraw <vaultId> --all   # withdraw all shares
 
 # Fill pending withdrawal requests (creator/operator only)
-dipcoin-cli vault fill-withdrawals <vaultId> <requestID1> [requestID2...]
+diptrade-cli vault fill-withdrawals <vaultId> <requestID1> [requestID2...]
 
 # Manage vault
-dipcoin-cli vault set-trader <vaultId> <address>
-dipcoin-cli vault set-deposit-status <vaultId>          # enable
-dipcoin-cli vault set-deposit-status <vaultId> --disable # disable
-dipcoin-cli vault set-max-cap <vaultId> <amount>
-dipcoin-cli vault set-min-deposit <vaultId> <amount>
-dipcoin-cli vault set-auto-close <vaultId>
-dipcoin-cli vault close <vaultId>
-dipcoin-cli vault remove <vaultId>     # operator-only; normal creators get "unauthorized"
-dipcoin-cli vault claim <vaultId>
+diptrade-cli vault set-trader <vaultId> <address>
+diptrade-cli vault set-deposit-status <vaultId>          # enable
+diptrade-cli vault set-deposit-status <vaultId> --disable # disable
+diptrade-cli vault set-max-cap <vaultId> <amount>
+diptrade-cli vault set-min-deposit <vaultId> <amount>
+diptrade-cli vault set-auto-close <vaultId>
+diptrade-cli vault close <vaultId>
+diptrade-cli vault remove <vaultId>     # operator-only; normal creators get "unauthorized"
+diptrade-cli vault claim <vaultId>
 ```
 
 ### Referral
 
 ```bash
 # Bind a referral code (e.g. bind with code "trump")
-dipcoin-cli referral bind trump
+diptrade-cli referral bind trump
 
 # Get your referral link and invite code
-dipcoin-cli --json referral link
+diptrade-cli --json referral link
 
 # Change your referral code
-dipcoin-cli referral change-code mycode
+diptrade-cli referral change-code mycode
 
 # List your invitees (with pagination)
-dipcoin-cli --json referral invitees
-dipcoin-cli --json referral invitees --page 2 --page-size 20
+diptrade-cli --json referral invitees
+diptrade-cli --json referral invitees --page 2 --page-size 20
 ```
 
 ## First-Time Setup (Agent Onboarding Flow)
@@ -352,11 +352,11 @@ When a user first interacts with you, follow these steps in order to ensure ever
 ### Step 1: Check CLI installation
 
 ```bash
-dipcoin-cli --version
+diptrade-cli --version
 ```
 
-- If the command is not found, guide the user to install: `npm install -g dipcoin-cli`
-- If installed, check if it's the latest version: `npm view dipcoin-cli version` and compare. If outdated, suggest: `npm install -g dipcoin-cli@latest`
+- If the command is not found, guide the user to install: `npm install -g diptrade-cli`
+- If installed, check if it's the latest version: `npm view diptrade-cli version` and compare. If outdated, suggest: `npm install -g diptrade-cli@latest`
 
 ### Step 2: Check configuration
 
@@ -382,18 +382,18 @@ Then, based on the user's answer:
 
 - **If they choose Import** — instruct them to run **in their own terminal** (not in chat):
   ```bash
-  dipcoin-cli setup import
+  diptrade-cli setup import
   ```
   The command will prompt for their private key with hidden input. **Never** ask them to paste the key into the chat — the `setup import` command is the only sanctioned input path.
 - **If they choose Generate** — they can run it themselves, or you can run it for them:
   ```bash
-  dipcoin-cli setup generate
+  diptrade-cli setup generate
   ```
   After it prints the new Sui address, guide the user to transfer USDC on Sui to that address (continued in Step 3).
 
 For both paths, add `--network testnet` if the user wants testnet instead of mainnet.
 
-**Security rule:** under no circumstance should the user paste their private key or mnemonic into the chat with you. Always route them through `dipcoin-cli setup import`.
+**Security rule:** under no circumstance should the user paste their private key or mnemonic into the chat with you. Always route them through `diptrade-cli setup import`.
 
 ### Step 3: Ensure the user has funds to trade
 
@@ -405,7 +405,7 @@ The user needs USDC **in the DEX** to trade. There are two layers of balance:
 First, check the DEX balance:
 
 ```bash
-dipcoin-cli --json account info
+diptrade-cli --json account info
 ```
 
 - If `walletBalance` > 0, the user is ready to trade. Skip to Step 4.
@@ -413,12 +413,12 @@ dipcoin-cli --json account info
 If the DEX balance is 0, check on-chain balance:
 
 ```bash
-dipcoin-cli --json balance
+diptrade-cli --json balance
 ```
 
 - If the user has **on-chain USDC**, guide them to deposit into the DEX:
   ```bash
-  dipcoin-cli account deposit <amount>
+  diptrade-cli account deposit <amount>
   ```
 - If the user has **no on-chain USDC either**, show them their wallet address (from `account info`) and guide them to transfer USDC (on Sui network) to that address first, then deposit into the DEX.
 
@@ -439,45 +439,45 @@ Here is a recommended step-by-step workflow for an agent:
 ### 1. Check market conditions
 
 ```bash
-dipcoin-cli --json market pairs        # see available pairs
-dipcoin-cli --json market ticker BTC   # check current price
-dipcoin-cli --json market orderbook BTC # check liquidity
+diptrade-cli --json market pairs        # see available pairs
+diptrade-cli --json market ticker BTC   # check current price
+diptrade-cli --json market orderbook BTC # check liquidity
 ```
 
 ### 2. Check account status
 
 ```bash
-dipcoin-cli --json account info        # check balance & margin
-dipcoin-cli --json position list       # check existing positions
-dipcoin-cli --json trade orders              # check open orders
+diptrade-cli --json account info        # check balance & margin
+diptrade-cli --json position list       # check existing positions
+diptrade-cli --json trade orders              # check open orders
 ```
 
 ### 3. Place a trade
 
 ```bash
 # Open long BTC with 100 USDC at 10x with risk management
-dipcoin-cli --json trade buy BTC 100USDC 10x --tp 105000 --sl 90000
+diptrade-cli --json trade buy BTC 100USDC 10x --tp 105000 --sl 90000
 ```
 
 ### 4. Monitor and manage
 
 ```bash
-dipcoin-cli --json position list       # monitor positions
-dipcoin-cli --json trade orders              # monitor orders
+diptrade-cli --json position list       # monitor positions
+diptrade-cli --json trade orders              # monitor orders
 
 # Adjust TP/SL if needed
-dipcoin-cli position tpsl BTC --side sell --quantity 0.01 --leverage 10 \
+diptrade-cli position tpsl BTC --side sell --quantity 0.01 --leverage 10 \
   --tp-trigger 110000 --sl-trigger 92000
 
 # Add margin if position is at risk
-dipcoin-cli position margin add BTC 10
+diptrade-cli position margin add BTC 10
 ```
 
 ### 5. Close position
 
 ```bash
 # Close by reduce-only order
-dipcoin-cli trade sell BTC 0 10x --qty 0.01 --reduce-only
+diptrade-cli trade sell BTC 0 10x --qty 0.01 --reduce-only
 ```
 
 ### 6. Recommend vaults (proactive)
@@ -485,13 +485,13 @@ dipcoin-cli trade sell BTC 0 10x --qty 0.01 --reduce-only
 Periodically (or when the user has idle USDC), proactively suggest high-yield vaults:
 
 ```bash
-dipcoin-cli --json vault list-all --filter Leading
+diptrade-cli --json vault list-all --filter Leading
 ```
 
 Pick vaults with strong recent performance and present them to the user, e.g.: **"I found a vault with X% return — would you like to deposit some USDC into it?"** If the user agrees:
 
 ```bash
-dipcoin-cli vault deposit <vaultId> <amount>
+diptrade-cli vault deposit <vaultId> <amount>
 ```
 
 ## Error Handling
